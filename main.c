@@ -167,11 +167,6 @@ extern void start_simpliciti_tx_only(simpliciti_mode_t mode);
 
 static void stubSendAcceleration()
 {
-	simpliciti_data[0] = SIMPLICITI_MOUSE_EVENTS;
-    simpliciti_data[1] = rand() % 80;
-    simpliciti_data[2] = rand() % 80;
-    simpliciti_data[3] = rand() % 80;
-
 	open_radio();
 
     // Set SimpliciTI mode

@@ -28,6 +28,8 @@
 
 // *************************************************************************************************
 // Include section
+#include <string.h>
+
 #include "bsp.h"
 #include "mrfi.h"
 #include "nwk_types.h"
@@ -64,7 +66,7 @@ extern void Timer0_A4_Delay(u16 ticks);
 static linkID_t sLinkID1;
 
 
-
+void olimex_delay(unsigned long delay);
 // *************************************************************************************************
 // @fn          simpliciti_link
 // @brief       Init hardware and try to link to access point.
@@ -168,37 +170,56 @@ unsigned char simpliciti_link(void)
 // *************************************************************************************************
 void simpliciti_main_tx_only(void)
 {
-    while (1)
-    {
-        // Get end device data from callback function
-        //simpliciti_get_ed_data_callback();
+	if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
+		return;
 
-        // Send data when flag bit SIMPLICITI_TRIGGER_SEND_DATA is set
-        if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
-        {
-            // Get radio ready. Wakes up in IDLE state.
-            SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
+	volatile uint32_t index = 0;
 
-            // Acceleration / button events packets are 4 bytes long
-            SMPL_SendOpt(sLinkID1, simpliciti_data, 4, SMPL_TXOPTION_NONE);
+	memset(simpliciti_data, 0xAA, 20);
+	simpliciti_data[0] = 0x01;
 
-            // Put radio back to SLEEP state
-            SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
+    // Get radio ready. Wakes up in IDLE state.
+    SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
-            clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
-        }
+	while (index < 5000)
+	{
+		simpliciti_data[3] = (unsigned char)(index & 0x000000FF);
+		simpliciti_data[2] = (unsigned char)((index & 0x0000FF00) >> 8);
+		simpliciti_data[1] = (unsigned char)((index & 0x00FF0000) >> 16);
 
-        // Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-        if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
-        {
-            // Clean up SimpliciTI stack to enable restarting
-            sInit_done = 0;
-            break;
-        }
+		// Acceleration / button events packets are 4 bytes long
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 4, SMPL_TXOPTION_NONE);
 
-        sInit_done = 0;
-        break;
-    }
+		index++;
+
+		if (index % 500 == 0)
+			P1OUT ^= 0x01;
+
+		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
+		if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
+		{
+			break;
+		}
+
+		if (returnCode != SMPL_SUCCESS)
+		{
+			uint8_t a = 40;
+			while (a--)
+			{
+				P1OUT ^= 0x01;
+				olimex_delay(900000);
+			}
+
+			break;
+		}
+	}
+
+    // Put radio back to SLEEP state
+    SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
+
+    clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
+
+    sInit_done = 0;
 }
 
 // *************************************************************************************************
