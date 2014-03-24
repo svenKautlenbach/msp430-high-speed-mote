@@ -65,7 +65,7 @@ extern void Timer0_A4_Delay(u16 ticks);
 // Global Variable section
 static linkID_t sLinkID1;
 
-
+static volatile uint32_t index = 0;
 void olimex_delay(unsigned long delay);
 // *************************************************************************************************
 // @fn          simpliciti_link
@@ -173,33 +173,33 @@ void simpliciti_main_tx_only(void)
 	if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
 		return;
 
-	volatile uint32_t index = 0;
+	index = 0;
 
-	memset(simpliciti_data, 0xAA, 20);
+	memset(simpliciti_data, 0x05, 20);
 	simpliciti_data[0] = 0x01;
 
     // Get radio ready. Wakes up in IDLE state.
     SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
-	while (index < 5000)
+	while (index < 2000)
 	{
 		simpliciti_data[3] = (unsigned char)(index & 0x000000FF);
 		simpliciti_data[2] = (unsigned char)((index & 0x0000FF00) >> 8);
 		simpliciti_data[1] = (unsigned char)((index & 0x00FF0000) >> 16);
 
 		// Acceleration / button events packets are 4 bytes long
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 4, SMPL_TXOPTION_NONE);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 18, SMPL_TXOPTION_NONE);
 
 		index++;
 
-		if (index % 500 == 0)
+		if (index % 300 == 0)
 			P1OUT ^= 0x01;
 
 		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-		if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
+		/*if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
 		{
 			break;
-		}
+		}*/
 
 		if (returnCode != SMPL_SUCCESS)
 		{
