@@ -49,7 +49,7 @@
 # Maximum size of application payload
 #--define=MAX_APP_PAYLOAD=10
 # [BM] Need to increase max payload for sync application
---define=MAX_APP_PAYLOAD=19
+--define=MAX_APP_PAYLOAD=50
 
 # Default Link token
 --define=DEFAULT_LINK_TOKEN=0x01020304

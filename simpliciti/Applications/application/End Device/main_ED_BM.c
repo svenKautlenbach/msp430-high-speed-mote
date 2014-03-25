@@ -175,7 +175,11 @@ void simpliciti_main_tx_only(void)
 
 	index = 0;
 
-	memset(simpliciti_data, 0x05, 20);
+	unsigned char tere;
+	for (tere = 1; tere <= SIMPLICITI_MAX_PAYLOAD_LENGTH; tere++)
+	{
+		simpliciti_data[tere - 1] = tere;
+	}
 	simpliciti_data[0] = 0x01;
 
     // Get radio ready. Wakes up in IDLE state.
@@ -188,7 +192,7 @@ void simpliciti_main_tx_only(void)
 		simpliciti_data[1] = (unsigned char)((index & 0x00FF0000) >> 16);
 
 		// Acceleration / button events packets are 4 bytes long
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 18, SMPL_TXOPTION_NONE);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
 
 		index++;
 

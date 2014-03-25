@@ -92,7 +92,7 @@ extern unsigned char simpliciti_link(void);
 extern unsigned char simpliciti_ed_address[4];
 
 // Maximum data length
-#define SIMPLICITI_MAX_PAYLOAD_LENGTH           (32u)
+#define SIMPLICITI_MAX_PAYLOAD_LENGTH           (50u)
 
 // Data to send / receive
 extern unsigned char simpliciti_data[SIMPLICITI_MAX_PAYLOAD_LENGTH];
