@@ -192,7 +192,7 @@ void simpliciti_main_tx_only(void)
 		simpliciti_data[1] = (unsigned char)((index & 0x00FF0000) >> 16);
 
 		// Acceleration / button events packets are 4 bytes long
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_ACKREQ);
 
 		index++;
 
@@ -205,7 +205,21 @@ void simpliciti_main_tx_only(void)
 			break;
 		}*/
 
-		if (returnCode != SMPL_SUCCESS)
+		if (returnCode == SMPL_NO_ACK)
+		{
+			if (SMPL_Ping(sLinkID1) != SMPL_SUCCESS)
+			{
+				uint8_t a = 40;
+				while (a--)
+				{
+					P1OUT ^= 0x01;
+					olimex_delay(500000);
+				}
+
+				break;
+			}
+		}
+		else if (returnCode != SMPL_SUCCESS)
 		{
 			uint8_t a = 40;
 			while (a--)
@@ -215,6 +229,10 @@ void simpliciti_main_tx_only(void)
 			}
 
 			break;
+		}
+		else
+		{
+			continue;
 		}
 	}
 
