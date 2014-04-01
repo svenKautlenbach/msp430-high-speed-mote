@@ -38,7 +38,7 @@
 # do not host End Device objects.
 #--define=NUM_CONNECTIONS=2
 # [BM] Only allow 1 connection to RF access point
---define=NUM_CONNECTIONS=1
+--define=NUM_CONNECTIONS=2
 
 # Size of low level queues for sent and received frames. Affects RAM usage
 
