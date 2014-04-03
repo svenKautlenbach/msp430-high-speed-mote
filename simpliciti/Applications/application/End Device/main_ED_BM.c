@@ -28,6 +28,7 @@
 
 // *************************************************************************************************
 // Include section
+#include <stdlib.h>
 #include <string.h>
 
 #include "bsp.h"
@@ -175,24 +176,26 @@ void simpliciti_main_tx_only(void)
 
 	index = 0;
 
-	unsigned char tere;
-	for (tere = 1; tere <= SIMPLICITI_MAX_PAYLOAD_LENGTH; tere++)
-	{
-		simpliciti_data[tere - 1] = tere;
-	}
-	simpliciti_data[0] = 0x01;
-
     // Get radio ready. Wakes up in IDLE state.
     SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
-	while (index < 2000)
+    simpliciti_data[0] = 'T';
+    simpliciti_data[1] = 'I';
+    simpliciti_data[2] = 'M';
+
+    simpliciti_data[4] = 'X';
+    simpliciti_data[7] = 'Y';
+    simpliciti_data[10] = 'Z';
+
+	while (index < 1000)
 	{
-		simpliciti_data[3] = (unsigned char)(index & 0x000000FF);
-		simpliciti_data[2] = (unsigned char)((index & 0x0000FF00) >> 8);
-		simpliciti_data[1] = (unsigned char)((index & 0x00FF0000) >> 16);
+		simpliciti_data[3] = (rand() % 255) + 1;
+		simpliciti_data[5] = (rand() % 255) + 1;
+		simpliciti_data[8] = (rand() % 255) + 1;
+		simpliciti_data[11] = (rand() % 255) + 1;
 
 		// Acceleration / button events packets are 4 bytes long
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_ACKREQ);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 13, SMPL_TXOPTION_ACKREQ);
 
 		index++;
 
@@ -200,10 +203,10 @@ void simpliciti_main_tx_only(void)
 			P1OUT ^= 0x01;
 
 		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-		/*if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
+		if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
 		{
 			break;
-		}*/
+		}
 
 		if (returnCode == SMPL_NO_ACK)
 		{
@@ -232,6 +235,7 @@ void simpliciti_main_tx_only(void)
 		}
 		else
 		{
+			olimex_delay(1000000);
 			continue;
 		}
 	}

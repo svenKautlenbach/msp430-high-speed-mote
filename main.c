@@ -82,6 +82,7 @@
 // system
 #include "project.h"
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 // driver
@@ -186,6 +187,22 @@ static void stubSendAcceleration()
     sRFsmpl.mode = SIMPLICITI_OFF;
 
     close_radio();
+}
+
+#pragma NOINIT (SysRstIv);
+const unsigned int SysRstIv = 0;
+
+int _system_pre_init(void)
+{
+	// stop WDT
+	WDTCTL = WDTPW + WDTHOLD;
+
+	// save reset information
+	unsigned int* tmp = (unsigned int*)&SysRstIv;
+	*tmp = SYSRSTIV;
+
+	// Perform C/C++ global data initialization
+	return 1;
 }
 
 // *************************************************************************************************
@@ -750,10 +767,25 @@ void read_calibration_values(void)
         rf_frequoffset = 4;
         sTemp.offset = -250;
         sBatt.offset = -10;
-        simpliciti_ed_address[0] = 0x79;
-        simpliciti_ed_address[1] = 0x56;
-        simpliciti_ed_address[2] = 0x34;
-        simpliciti_ed_address[3] = 0x12;
+        simpliciti_ed_address[0] = 'S';
+        simpliciti_ed_address[1] = 'H';
+        simpliciti_ed_address[2] = 'M';
+
+        // Generate the last address byte as a random one. Do not match with the access point one!
+        do
+        {
+        	uint8_t randomLastByte[5] = {0};
+        	uint8_t randomByteIndex;
+        	for (randomByteIndex = 0; i < 5; i++) randomLastByte[randomByteIndex] = (rand() % 255) + 1;
+
+        	uint8_t randomAddressByte = randomLastByte[(rand() % 5)];
+        	if (randomAddressByte == 'A')
+        		continue;
+
+        	simpliciti_ed_address[3] = randomAddressByte;
+        	break;
+        }while(1);
+
         sAlt.altitude_offset = 0;
     } else
     {
