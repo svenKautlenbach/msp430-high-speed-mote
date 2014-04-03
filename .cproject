@@ -56,7 +56,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/logic}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/bluerobin}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/simpliciti}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/simpliciti/Applications/application/End Device}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/simpliciti/Components/bsp}&quot;"/>
@@ -707,6 +706,26 @@
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cxxHeader" language="com.ti.ccstudio.core.TIGPPLanguage"/>
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cxxSource" language="com.ti.ccstudio.core.TIGPPLanguage"/>
 		</project-mappings>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="915MHz - Unrestricted CCS Platinum">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
+		<configuration configurationName="433MHz - Unrestricted CCS Platinum">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
+		<configuration configurationName="433MHz - Limited CCS Core Edition">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
+		<configuration configurationName="868MHz - Limited CCS Core Edition">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
+		<configuration configurationName="868MHz - Unrestricted CCS Platinum">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
+		<configuration configurationName="915MHz - Limited CCS Core Edition">
+			<resource resourceType="PROJECT" workspacePath="/ez430_chronos"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="null.endianPreference"/>
 	<storageModule moduleId="cpuFamily"/>

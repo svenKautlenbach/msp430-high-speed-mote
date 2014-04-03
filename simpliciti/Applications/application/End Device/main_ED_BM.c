@@ -39,6 +39,8 @@
 #include "bsp_buttons.h"
 #include "simpliciti.h"
 
+#include "timestamp.h"
+
 
 // *************************************************************************************************
 // Defines section
@@ -179,23 +181,18 @@ void simpliciti_main_tx_only(void)
     // Get radio ready. Wakes up in IDLE state.
     SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
-    simpliciti_data[0] = 'T';
-    simpliciti_data[1] = 'I';
-    simpliciti_data[2] = 'M';
-
-    simpliciti_data[4] = 'X';
-    simpliciti_data[7] = 'Y';
-    simpliciti_data[10] = 'Z';
+    simpliciti_data[6] = 'X';
+    simpliciti_data[9] = 'Y';
+    simpliciti_data[12] = 'Z';
 
 	while (index < 1000)
 	{
-		simpliciti_data[3] = (rand() % 255) + 1;
-		simpliciti_data[5] = (rand() % 255) + 1;
-		simpliciti_data[8] = (rand() % 255) + 1;
-		simpliciti_data[11] = (rand() % 255) + 1;
+		memcpy(simpliciti_data, timestampAsBuffer(), 6);
+		simpliciti_data[7] = (rand() % 255) + 1;
+		simpliciti_data[10] = (rand() % 255) + 1;
+		simpliciti_data[13] = (rand() % 255) + 1;
 
-		// Acceleration / button events packets are 4 bytes long
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 13, SMPL_TXOPTION_ACKREQ);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 15, SMPL_TXOPTION_ACKREQ);
 
 		index++;
 
