@@ -11,3 +11,4 @@ typedef struct
 void timestampTick();
 void timestampInit(uint32_t timeT);
 uint8_t* timestampAsBuffer();
+timestamp_t timestampGet();
