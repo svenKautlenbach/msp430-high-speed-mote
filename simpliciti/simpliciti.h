@@ -147,6 +147,7 @@ extern void simpliciti_get_ed_data_callback(void);
 #define SYNC_AP_CMD_GET_MEMORY_BLOCKS_MODE_2    (5u)
 #define SYNC_AP_CMD_ERASE_MEMORY                (6u)
 #define SYNC_AP_CMD_EXIT                        (7u)
+#define SYNC_AP_CMD_SET_TIME_T					(8u)
 
 
 // Entry point into SimpliciTI library
