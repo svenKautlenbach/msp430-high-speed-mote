@@ -179,6 +179,8 @@ static void stubSendAcceleration()
 
     if (simpliciti_link())
     {
+    	simpliciti_main_sync();
+
         setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 
     	simpliciti_main_tx_only();
@@ -222,7 +224,7 @@ int main(void)
     // Assign initial value to global variables
     init_global_variables();
 
-    timestampInit(1396556875);
+    //timestampInit(1396556875);
 
     // Main control loop: wait in low power mode until some event needs to be processed
     while (1)

@@ -185,7 +185,7 @@ void simpliciti_main_tx_only(void)
     simpliciti_data[9] = 'Y';
     simpliciti_data[12] = 'Z';
 
-	while (index < 1000)
+	while (1)
 	{
 		memcpy(simpliciti_data, timestampAsBuffer(), 6);
 		simpliciti_data[7] = (rand() % 255) + 1;
@@ -195,9 +195,6 @@ void simpliciti_main_tx_only(void)
 		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 15, SMPL_TXOPTION_ACKREQ);
 
 		index++;
-
-		if (index % 300 == 0)
-			P1OUT ^= 0x01;
 
 		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
 		if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
@@ -232,7 +229,13 @@ void simpliciti_main_tx_only(void)
 		}
 		else
 		{
-			olimex_delay(1000000);
+			uint8_t timeDelay = 60;
+			while (timeDelay--)
+			{
+				Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+			}
+
+			BSP_TOGGLE_LED1();
 			continue;
 		}
 	}
@@ -254,14 +257,8 @@ void simpliciti_main_tx_only(void)
 // *************************************************************************************************
 void simpliciti_main_sync(void)
 {
-    uint8_t len, i;
+    uint8_t len;
     uint8_t ed_data[2];
-
-    while (1)
-    {
-        // Sleep 0.5sec between ready-to-receive packets
-        // SimpliciTI has no low power delay function, so we have to use ours
-        Timer0_A4_Delay(CONV_MS_TO_TICKS(500));
 
         // Get radio ready. Radio wakes up in IDLE state.
         SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
@@ -269,14 +266,42 @@ void simpliciti_main_sync(void)
         // Send 2 byte long ready-to-receive packet to stimulate host reply
         ed_data[0] = SYNC_ED_TYPE_R2R;
         ed_data[1] = 0xCB;
-        SMPL_SendOpt(sLinkID1, ed_data, 2, SMPL_TXOPTION_NONE);
+
+        smplStatus_t status = SMPL_NO_ACK;
+        while (status == SMPL_NO_ACK)
+        {
+        	status = SMPL_SendOpt(sLinkID1, ed_data, 2, SMPL_TXOPTION_ACKREQ);
+        }
 
         // Wait shortly for host reply
         SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXON, 0);
         NWK_DELAY(10);
 
+        while (1)
+        {
+        	if (SMPL_Receive(sLinkID1, simpliciti_data, &len) != SMPL_SUCCESS)
+        	{
+        		continue;
+        	}
+
+        	if (simpliciti_data[0] == SYNC_AP_CMD_SET_TIME_T && len == 5)
+        	{
+        			uint32_t timeT = 0;
+        			timeT |= simpliciti_data[1];
+        			timeT |= ((uint32_t)simpliciti_data[2] << 8);
+        			timeT |= ((uint32_t)simpliciti_data[3] << 16);
+        			timeT |= ((uint32_t)simpliciti_data[4] << 24);
+
+        			timestampInit(timeT);
+
+        			break;
+        	}
+        }
+
+        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXIDLE, 0);
+
         // Check if a command packet was received
-        while (SMPL_Receive(sLinkID1, simpliciti_data, &len) == SMPL_SUCCESS)
+        /*while (SMPL_Receive(sLinkID1, simpliciti_data, &len) == SMPL_SUCCESS)
         {
             // Decode received data
             if (len > 0)
@@ -292,10 +317,10 @@ void simpliciti_main_sync(void)
                     SMPL_SendOpt(sLinkID1, simpliciti_data, BM_SYNC_DATA_LENGTH, SMPL_TXOPTION_NONE);
                 }
             }
-        }
+        }*/
 
         // Put radio back to sleep
-        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
+        //SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
 
 #ifdef USE_WATCHDOG
         // Service watchdog
@@ -303,12 +328,11 @@ void simpliciti_main_sync(void)
 #endif
 
         // Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-        if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
+        /*if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
         {
             // Clean up SimpliciTI stack to enable restarting
             sInit_done = 0;
             break;
-        }
-    }
+        }*/
 }
 
