@@ -162,3 +162,4 @@ extern void simpliciti_sync_get_data_callback(unsigned int index);
 // Send reply packets (>0), 0=no need to reply
 extern unsigned char simpliciti_reply_count;
 
+extern void sendShmData();

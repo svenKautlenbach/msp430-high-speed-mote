@@ -179,6 +179,7 @@ static void stubSendAcceleration()
 
     if (simpliciti_link())
     {
+
     	simpliciti_main_sync();
 
         setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
@@ -192,7 +193,19 @@ static void stubSendAcceleration()
     close_radio();
 }
 
-#pragma NOINIT (SysRstIv);
+static void shmApp()
+{
+	// Get the data
+
+
+	// This is here for the legacy reasons, since is_rf() is called from radio ISR,
+	// which in turn uses this object to determine if the simpliciti is off or not.
+	sRFsmpl.mode = SIMPLICITI_ACCELERATION;
+
+	sendShmData();
+}
+
+//#pragma NOINIT (SysRstIv);
 const unsigned int SysRstIv = 0;
 
 int _system_pre_init(void)
@@ -229,10 +242,16 @@ int main(void)
     // Main control loop: wait in low power mode until some event needs to be processed
     while (1)
     {
-    	stubSendAcceleration();
+    	// Do the SHM specific stuff here.
+    	shmApp();
 
+    	// Now for the predetermined time we should sleep here...
     	P1OUT ^= 0x01;
-    	olimex_delay(1000000);
+    	uint8_t i = 3;
+    	while (i--)
+    	{
+        	Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+    	}
     }
 }
 

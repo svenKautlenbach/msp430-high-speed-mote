@@ -38,6 +38,7 @@
 #include "bsp_leds.h"
 #include "bsp_buttons.h"
 #include "simpliciti.h"
+#include "radio.h"
 
 #include "timestamp.h"
 
@@ -67,6 +68,7 @@ extern void Timer0_A4_Delay(u16 ticks);
 // *************************************************************************************************
 // Global Variable section
 static linkID_t sLinkID1;
+static uint8_t s_syncDone = 0;
 
 static volatile uint32_t index = 0;
 void olimex_delay(unsigned long delay);
@@ -173,13 +175,10 @@ unsigned char simpliciti_link(void)
 // *************************************************************************************************
 void simpliciti_main_tx_only(void)
 {
-	if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
-		return;
+	//if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
+		//return;
 
 	index = 0;
-
-    // Get radio ready. Wakes up in IDLE state.
-    SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
     simpliciti_data[6] = 'X';
     simpliciti_data[9] = 'Y';
@@ -197,10 +196,10 @@ void simpliciti_main_tx_only(void)
 		index++;
 
 		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-		if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
-		{
-			break;
-		}
+		//if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
+		//{
+			//break;
+		//}
 
 		if (returnCode == SMPL_NO_ACK)
 		{
@@ -209,8 +208,8 @@ void simpliciti_main_tx_only(void)
 				uint8_t a = 40;
 				while (a--)
 				{
-					P1OUT ^= 0x01;
-					olimex_delay(500000);
+					BSP_TOGGLE_LED1();
+					Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
 				}
 
 				break;
@@ -221,31 +220,26 @@ void simpliciti_main_tx_only(void)
 			uint8_t a = 40;
 			while (a--)
 			{
-				P1OUT ^= 0x01;
-				olimex_delay(900000);
+				BSP_TOGGLE_LED1();
+				Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
 			}
 
 			break;
 		}
 		else
 		{
-			uint8_t timeDelay = 60;
+			/*uint8_t timeDelay = 10;
 			while (timeDelay--)
 			{
 				Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			}
-
+			}*/
+			Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
 			BSP_TOGGLE_LED1();
 			continue;
 		}
 	}
 
-    // Put radio back to SLEEP state
-    SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
-
     clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
-
-    sInit_done = 0;
 }
 
 // *************************************************************************************************
@@ -260,8 +254,13 @@ void simpliciti_main_sync(void)
     uint8_t len;
     uint8_t ed_data[2];
 
+    if (s_syncDone)
+    {
+    	return;
+    }
+
         // Get radio ready. Radio wakes up in IDLE state.
-        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
+        //SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
         // Send 2 byte long ready-to-receive packet to stimulate host reply
         ed_data[0] = SYNC_ED_TYPE_R2R;
@@ -293,6 +292,8 @@ void simpliciti_main_sync(void)
         			timeT |= ((uint32_t)simpliciti_data[4] << 24);
 
         			timestampInit(timeT);
+
+        			s_syncDone = 1;
 
         			break;
         	}
@@ -334,5 +335,29 @@ void simpliciti_main_sync(void)
             sInit_done = 0;
             break;
         }*/
+}
+
+void sendShmData()
+{
+	open_radio();
+
+	if (simpliciti_link())
+	{
+		// Get radio ready. Wakes up in IDLE state.
+		SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
+
+		simpliciti_main_sync();
+
+		setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
+
+		simpliciti_main_tx_only();
+
+		clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
+	}
+
+    SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
+    sInit_done = 0;
+
+    close_radio();
 }
 
