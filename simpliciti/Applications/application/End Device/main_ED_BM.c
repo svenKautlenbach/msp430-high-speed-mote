@@ -70,7 +70,6 @@ extern void Timer0_A4_Delay(u16 ticks);
 static linkID_t sLinkID1;
 static uint8_t s_syncDone = 0;
 
-static volatile uint32_t index = 0;
 void olimex_delay(unsigned long delay);
 // *************************************************************************************************
 // @fn          simpliciti_link
@@ -175,47 +174,23 @@ unsigned char simpliciti_link(void)
 // *************************************************************************************************
 void simpliciti_main_tx_only(void)
 {
-	//if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
-		//return;
-
-	index = 0;
-
-    simpliciti_data[6] = 'X';
-    simpliciti_data[9] = 'Y';
-    simpliciti_data[12] = 'Z';
+    uint32_t index = 0;
 
 	while (1)
 	{
 		memcpy(simpliciti_data, timestampAsBuffer(), 6);
-		simpliciti_data[7] = (rand() % 255) + 1;
-		simpliciti_data[10] = (rand() % 255) + 1;
-		simpliciti_data[13] = (rand() % 255) + 1;
+		memcpy(simpliciti_data + 6, &index, 4);
 
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 15, SMPL_TXOPTION_ACKREQ);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
 
 		index++;
 
-		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-		//if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
-		//{
-			//break;
-		//}
-
-		if (returnCode == SMPL_NO_ACK)
+		if (returnCode != SMPL_SUCCESS)
 		{
-			if (SMPL_Ping(sLinkID1) != SMPL_SUCCESS)
-			{
-				uint8_t a = 40;
-				while (a--)
-				{
-					BSP_TOGGLE_LED1();
-					Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
-				}
-
-				break;
-			}
+			index--;
+			continue;
 		}
-		else if (returnCode != SMPL_SUCCESS)
+		else if (index > 10000)
 		{
 			uint8_t a = 40;
 			while (a--)
@@ -233,8 +208,8 @@ void simpliciti_main_tx_only(void)
 			{
 				Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
 			}*/
-			Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			BSP_TOGGLE_LED1();
+			//Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+			//BSP_TOGGLE_LED1();
 			continue;
 		}
 	}
