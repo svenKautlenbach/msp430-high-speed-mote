@@ -181,7 +181,7 @@ void simpliciti_main_tx_only(void)
 		memcpy(simpliciti_data, timestampAsBuffer(), 6);
 		memcpy(simpliciti_data + 6, &index, 4);
 
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_ACKREQ);
 
 		index++;
 
