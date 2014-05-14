@@ -193,7 +193,7 @@ void simpliciti_main_tx_only(void)
 		else if (index > 10000)
 		{
 			uint8_t a = 40;
-			while (a--)
+			while (1)
 			{
 				BSP_TOGGLE_LED1();
 				Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
