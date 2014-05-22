@@ -40,6 +40,10 @@
 #include "simpliciti.h"
 #include "radio.h"
 
+#include "project.h"
+
+#include "battery.h"
+#include "temperature.h"
 #include "timestamp.h"
 
 
@@ -49,9 +53,6 @@
 
 // Conversion from msec to ACLK timer ticks
 #define CONV_MS_TO_TICKS(msec)                          (((msec) * 32768) / 1000)
-
-// U16
-typedef unsigned short u16;
 
 // *************************************************************************************************
 // Prototypes section
@@ -175,69 +176,21 @@ unsigned char simpliciti_link(void)
 // *************************************************************************************************
 void simpliciti_main_tx_only(void)
 {
-	//if (!getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA))
-		//return;
-
-	index = 0;
-
-    simpliciti_data[6] = 'X';
-    simpliciti_data[9] = 'Y';
-    simpliciti_data[12] = 'Z';
+	SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXON, 0);
 
 	while (1)
 	{
-		memcpy(simpliciti_data, timestampAsBuffer(), 6);
-		simpliciti_data[7] = (rand() % 255) + 1;
-		simpliciti_data[10] = (rand() % 255) + 1;
-		simpliciti_data[13] = (rand() % 255) + 1;
+		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data + 1, simpliciti_data[0], SMPL_TXOPTION_ACKREQ);
 
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 15, SMPL_TXOPTION_ACKREQ);
-
-		index++;
-
-		// Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-		//if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
-		//{
-			//break;
-		//}
-
-		if (returnCode == SMPL_NO_ACK)
+		if (returnCode != SMPL_SUCCESS)
 		{
-			if (SMPL_Ping(sLinkID1) != SMPL_SUCCESS)
-			{
-				uint8_t a = 40;
-				while (a--)
-				{
-					BSP_TOGGLE_LED1();
-					Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
-				}
-
-				break;
-			}
-		}
-		else if (returnCode != SMPL_SUCCESS)
-		{
-			uint8_t a = 40;
-			while (a--)
-			{
-				BSP_TOGGLE_LED1();
-				Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
-			}
-
-			break;
-		}
-		else
-		{
-			/*uint8_t timeDelay = 10;
-			while (timeDelay--)
-			{
-				Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			}*/
-			Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			BSP_TOGGLE_LED1();
 			continue;
 		}
+
+		break;
 	}
+
+	SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXIDLE, 0);
 
     clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 }
@@ -259,12 +212,11 @@ void simpliciti_main_sync(void)
     	return;
     }
 
-        // Get radio ready. Radio wakes up in IDLE state.
-        //SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
-
         // Send 2 byte long ready-to-receive packet to stimulate host reply
         ed_data[0] = SYNC_ED_TYPE_R2R;
         ed_data[1] = 0xCB;
+
+        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXON, 0);
 
         smplStatus_t status = SMPL_NO_ACK;
         while (status == SMPL_NO_ACK)
@@ -272,14 +224,13 @@ void simpliciti_main_sync(void)
         	status = SMPL_SendOpt(sLinkID1, ed_data, 2, SMPL_TXOPTION_ACKREQ);
         }
 
-        // Wait shortly for host reply
-        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXON, 0);
         NWK_DELAY(10);
-
-        while (1)
+        uint8_t retries = 10;
+        while (retries--)
         {
         	if (SMPL_Receive(sLinkID1, simpliciti_data, &len) != SMPL_SUCCESS)
         	{
+        		NWK_DELAY(10);
         		continue;
         	}
 
@@ -301,45 +252,17 @@ void simpliciti_main_sync(void)
 
         SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXIDLE, 0);
 
-        // Check if a command packet was received
-        /*while (SMPL_Receive(sLinkID1, simpliciti_data, &len) == SMPL_SUCCESS)
-        {
-            // Decode received data
-            if (len > 0)
-            {
-                // Use callback function in application to decode data and react
-                simpliciti_sync_decode_ap_cmd_callback();
-
-                // Get reply data and send out reply packet burst (19 bytes each)
-                for (i = 0; i < simpliciti_reply_count; i++)
-                {
-                    NWK_DELAY(10);
-                    simpliciti_sync_get_data_callback(i);
-                    SMPL_SendOpt(sLinkID1, simpliciti_data, BM_SYNC_DATA_LENGTH, SMPL_TXOPTION_NONE);
-                }
-            }
-        }*/
-
-        // Put radio back to sleep
-        //SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SLEEP, 0);
-
 #ifdef USE_WATCHDOG
         // Service watchdog
         WDTCTL = WDTPW + WDTIS__512K + WDTSSEL__ACLK + WDTCNTCL;
 #endif
-
-        // Exit when flag bit SIMPLICITI_TRIGGER_STOP is set
-        /*if (getFlag(simpliciti_flag, SIMPLICITI_TRIGGER_STOP))
-        {
-            // Clean up SimpliciTI stack to enable restarting
-            sInit_done = 0;
-            break;
-        }*/
 }
 
 void sendShmData()
 {
 	open_radio();
+
+	uint32_t index = 1;
 
 	if (simpliciti_link())
 	{
@@ -350,7 +273,31 @@ void sendShmData()
 
 		setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 
-		simpliciti_main_tx_only();
+		while (1)
+		{
+			battery_measurement();
+			temperature_measurement(FILTER_OFF);
+
+			u16 voltage = sBatt.voltage;
+			s16 degrees = sTemp.degrees;
+
+			memcpy(simpliciti_data + 1, timestampAsBuffer(), 6);
+			memcpy(simpliciti_data + 7, &index, 4);
+
+			simpliciti_data[11] = 'B';
+			memcpy(simpliciti_data + 12, (uint8_t*)&voltage, 2);
+			simpliciti_data[14] = 'T';
+			memcpy(simpliciti_data + 15, (uint8_t*)&degrees, 2);
+			simpliciti_data[0] = 16;
+
+			simpliciti_main_tx_only();
+
+			index++;
+
+			BSP_TURN_OFF_LED1();
+			Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+			BSP_TURN_ON_LED1();
+		}
 
 		clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 	}

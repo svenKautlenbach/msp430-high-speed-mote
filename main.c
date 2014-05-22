@@ -165,39 +165,8 @@ void (*fptr_lcd_function_line2)(u8 line, u8 update);
 // *************************************************************************************************
 // Extern section
 
-extern void start_simpliciti_tx_only(simpliciti_mode_t mode);
-
-static void stubSendAcceleration()
-{
-	open_radio();
-
-    // Set SimpliciTI mode
-    sRFsmpl.mode = SIMPLICITI_ACCELERATION;
-
-    // Set SimpliciTI timeout to save battery power
-    sRFsmpl.timeout2 = SIMPLICITI_TIMEOUT2;
-
-    if (simpliciti_link())
-    {
-
-    	simpliciti_main_sync();
-
-        setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
-
-    	simpliciti_main_tx_only();
-    }
-
-    // Set SimpliciTI state to OFF
-    sRFsmpl.mode = SIMPLICITI_OFF;
-
-    close_radio();
-}
-
 static void shmApp()
 {
-	// Get the data
-
-
 	// This is here for the legacy reasons, since is_rf() is called from radio ISR,
 	// which in turn uses this object to determine if the simpliciti is off or not.
 	sRFsmpl.mode = SIMPLICITI_ACCELERATION;
@@ -237,21 +206,11 @@ int main(void)
     // Assign initial value to global variables
     init_global_variables();
 
-    //timestampInit(1396556875);
-
     // Main control loop: wait in low power mode until some event needs to be processed
     while (1)
     {
     	// Do the SHM specific stuff here.
     	shmApp();
-
-    	// Now for the predetermined time we should sleep here...
-    	P1OUT ^= 0x01;
-    	uint8_t i = 3;
-    	while (i--)
-    	{
-        	Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-    	}
     }
 }
 
@@ -797,7 +756,7 @@ void read_calibration_values(void)
         	if (randomAddressByte == 'A')
         		continue;
 
-        	simpliciti_ed_address[3] = randomAddressByte;
+        	simpliciti_ed_address[3] = 0x02;//randomAddressByte;
         	break;
         }while(1);
 
