@@ -229,7 +229,7 @@ int _system_pre_init(void)
 // *************************************************************************************************
 int main(void)
 {
-	LED_On();
+	LED_Off();
 
     // Init MCU
     init_application();
@@ -244,14 +244,6 @@ int main(void)
     {
     	// Do the SHM specific stuff here.
     	shmApp();
-
-    	// Now for the predetermined time we should sleep here...
-    	P1OUT ^= 0x01;
-    	uint8_t i = 3;
-    	while (i--)
-    	{
-        	Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-    	}
     }
 }
 
@@ -355,15 +347,15 @@ void init_application(void)
 
     // ---------------------------------------------------------------------
     // Init acceleration sensor
-    as_init();
+    //as_init();
 
     // ---------------------------------------------------------------------
     // Init LCD
-    lcd_init();
+    //lcd_init();
 
     // ---------------------------------------------------------------------
     // Init buttons
-    init_buttons();
+    //init_buttons();
 
     // ---------------------------------------------------------------------
     // Configure Timer0 for use by the clock and delay functions
@@ -372,9 +364,9 @@ void init_application(void)
 
     // ---------------------------------------------------------------------
     // Init pressure sensor
-    bmp_ps_init();
+    //bmp_ps_init();
     // Bosch sensor not found?
-    if (!ps_ok)
+    /*if (!ps_ok)
     {
         bmp_used = 0;
         cma_ps_init();
@@ -386,7 +378,7 @@ void init_application(void)
     	bmp_used = 1;
     	// Chronos with White PCB
     	chronos_black = 0;
-    }
+    }*/
 }
 
 // *************************************************************************************************
@@ -441,35 +433,35 @@ void init_global_variables(void)
     read_calibration_values();
 
     // Set system time to default value
-    reset_clock();
+    //reset_clock();
 
     // Set date to default value
-    reset_date();
+    //reset_date();
 
     // Set alarm time to default value
-    reset_alarm();
+    //reset_alarm();
 
     // Set buzzer to default value
-    reset_buzzer();
+    //reset_buzzer();
 
     // Reset stopwatch
-    reset_stopwatch();
+    //reset_stopwatch();
 
     // Reset altitude measurement
-    reset_altitude_measurement();
+    //reset_altitude_measurement();
 
     // Reset acceleration measurement
-    reset_acceleration();
+    //reset_acceleration();
 
     // Reset SimpliciTI stack
     reset_rf();
 
     // Reset temperature measurement
-    reset_temp_measurement();
+    //reset_temp_measurement();
 
     // Reset battery measurement
-    reset_batt_measurement();
-    battery_measurement();
+    //reset_batt_measurement();
+    //battery_measurement();
 }
 
 // *************************************************************************************************
