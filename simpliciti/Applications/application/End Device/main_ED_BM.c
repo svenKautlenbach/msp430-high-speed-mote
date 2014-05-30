@@ -129,7 +129,7 @@ unsigned char simpliciti_link(void)
         }
     }
 
-    pwr = IOCTL_LEVEL_0;
+    pwr = IOCTL_LEVEL_2;
     SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SETPWR, &pwr);
 
     /* Unconditional link to AP which is listening due to successful join. */
@@ -173,11 +173,17 @@ unsigned char simpliciti_link(void)
 // *************************************************************************************************
 void simpliciti_main_tx_only(void)
 {
-    uint32_t index = 0;
-
 	while (1)
 	{
-		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
+		uint8_t packetCount = 1;
+		while (packetCount++ <= 10)
+		{
+			SMPL_SendOpt(sLinkID1, &packetCount, 1, SMPL_TXOPTION_NONE);
+			Timer0_A4_Delay(CONV_MS_TO_TICKS(97));
+		}
+
+		Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+		Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
 	}
 
     clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
