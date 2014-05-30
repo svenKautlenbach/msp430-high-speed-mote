@@ -229,7 +229,7 @@ int _system_pre_init(void)
 // *************************************************************************************************
 int main(void)
 {
-	LED_On();
+	LED_Off();
 
     // Init MCU
     init_application();
