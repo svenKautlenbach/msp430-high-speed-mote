@@ -129,8 +129,7 @@ unsigned char simpliciti_link(void)
         }
     }
 
-    // Set output power to +3.3dmB
-    pwr = IOCTL_LEVEL_2;
+    pwr = IOCTL_LEVEL_0;
     SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_SETPWR, &pwr);
 
     /* Unconditional link to AP which is listening due to successful join. */
@@ -178,40 +177,7 @@ void simpliciti_main_tx_only(void)
 
 	while (1)
 	{
-		memcpy(simpliciti_data, timestampAsBuffer(), 6);
-		memcpy(simpliciti_data + 6, &index, 4);
-
 		smplStatus_t returnCode = SMPL_SendOpt(sLinkID1, simpliciti_data, 50, SMPL_TXOPTION_NONE);
-
-		index++;
-
-		if (returnCode != SMPL_SUCCESS)
-		{
-			index--;
-			continue;
-		}
-		else if (index > 10000)
-		{
-			uint8_t a = 40;
-			while (a--)
-			{
-				BSP_TOGGLE_LED1();
-				Timer0_A4_Delay(CONV_MS_TO_TICKS(200));
-			}
-
-			break;
-		}
-		else
-		{
-			/*uint8_t timeDelay = 10;
-			while (timeDelay--)
-			{
-				Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			}*/
-			//Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-			//BSP_TOGGLE_LED1();
-			continue;
-		}
 	}
 
     clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
@@ -321,9 +287,9 @@ void sendShmData()
 		// Get radio ready. Wakes up in IDLE state.
 		SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_AWAKE, 0);
 
-		simpliciti_main_sync();
-
 		setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
+
+        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXIDLE, 0);
 
 		simpliciti_main_tx_only();
 
