@@ -229,18 +229,17 @@ int _system_pre_init(void)
 // *************************************************************************************************
 int main(void)
 {
-	LED_On();
+	LED_Off();
 
     // Init MCU
     init_application();
 
     // Assign initial value to global variables
-    init_global_variables();
+    //init_global_variables();
 
     //timestampInit(1396556875);
 
     // Main control loop: wait in low power mode until some event needs to be processed
-    close_radio();
 
     while (1)
     {
@@ -348,26 +347,26 @@ void init_application(void)
 
     // ---------------------------------------------------------------------
     // Init acceleration sensor
-    as_init();
+    //as_init();
 
     // ---------------------------------------------------------------------
     // Init LCD
-    lcd_init();
+    //lcd_init();
 
     // ---------------------------------------------------------------------
     // Init buttons
-    init_buttons();
+    //init_buttons();
 
     // ---------------------------------------------------------------------
     // Configure Timer0 for use by the clock and delay functions
-    Timer0_Init();
+    //Timer0_Init();
     // ---------------------------------------------------------------------
 
     // ---------------------------------------------------------------------
     // Init pressure sensor
-    bmp_ps_init();
+    //bmp_ps_init();
     // Bosch sensor not found?
-    if (!ps_ok)
+    /*if (!ps_ok)
     {
         bmp_used = 0;
         cma_ps_init();
@@ -379,7 +378,7 @@ void init_application(void)
     	bmp_used = 1;
     	// Chronos with White PCB
     	chronos_black = 0;
-    }
+    }*/
 }
 
 // *************************************************************************************************
