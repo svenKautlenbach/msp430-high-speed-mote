@@ -240,18 +240,11 @@ int main(void)
     //timestampInit(1396556875);
 
     // Main control loop: wait in low power mode until some event needs to be processed
+    close_radio();
+
     while (1)
     {
-    	// Do the SHM specific stuff here.
-    	shmApp();
-
-    	// Now for the predetermined time we should sleep here...
-    	P1OUT ^= 0x01;
-    	uint8_t i = 3;
-    	while (i--)
-    	{
-        	Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-    	}
+    	idle_loop();
     }
 }
 
