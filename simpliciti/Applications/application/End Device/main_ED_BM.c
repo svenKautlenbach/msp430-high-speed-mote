@@ -289,9 +289,13 @@ void sendShmData()
 
 		setFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 
-        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXIDLE, 0);
+        SMPL_Ioctl(IOCTL_OBJ_RADIO, IOCTL_ACT_RADIO_RXON, 0);
 
-		simpliciti_main_tx_only();
+        while (1)
+        {
+        	uint8_t length = 0;
+        	SMPL_Receive(sLinkID1, simpliciti_data, &length);
+        }
 
 		clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
 	}

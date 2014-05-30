@@ -318,7 +318,7 @@ BSP_STATIC_ASSERT(__mrfi_NUM_LOGICAL_CHANS__ ==
 // Modified PA table values. Check datasheet pg. 83.
 static const uint8_t mrfiRFPowerTable[] =
 {
-    0x2D, // -6 dBm
+    0x03, // -30 dBm
     0x8D, // 0 dBm
 #ifdef ISM_EU
     0xC0 // Maximum (11 dBm)
