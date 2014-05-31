@@ -175,15 +175,18 @@ void simpliciti_main_tx_only(void)
 {
 	while (1)
 	{
-		uint8_t packetCount = 1;
-		while (packetCount++ <= 10)
+		uint8_t packetCount = 0;
+		while (packetCount++ < 10)
 		{
 			SMPL_SendOpt(sLinkID1, &packetCount, 1, SMPL_TXOPTION_NONE);
 			Timer0_A4_Delay(CONV_MS_TO_TICKS(97));
 		}
 
-		Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
-		Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+		uint8_t sleep = 10;
+		while (sleep--)
+		{
+			Timer0_A4_Delay(CONV_MS_TO_TICKS(1000));
+		}
 	}
 
     clearFlag(simpliciti_flag, SIMPLICITI_TRIGGER_SEND_DATA);
